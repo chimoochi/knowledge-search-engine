@@ -1,0 +1,5 @@
+{
+  "name": "NASA Space Biology Knowledge Engine",
+  "description": "A search engine UI designed for the NASA Space Apps Challenge to explore space biology knowledge. This is a functional placeholder UI with mock search results.",
+  "requestFramePermissions": []
+}

@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+requests
+PyPDF2
+selenium
+beautifulsoup4
