@@ -6,6 +6,7 @@ import Header from './components/Header';
 import SearchBar from './components/SearchBar';
 import SearchResults from './components/SearchResults';
 import Pagination from './components/Pagination';
+import LandingPage from './components/LandingPage';
 
 import { API_BASE_URL, PROXY_URL, fetchWithRetry } from './utils';
 
@@ -14,6 +15,7 @@ import type { SearchResult, AIResponseData } from './types';
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const App: React.FC = () => {
+  const [hasEnteredSite, setHasEnteredSite] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSearchTerm, setActiveSearchTerm] = useState('');
   
@@ -26,7 +28,7 @@ const App: React.FC = () => {
   const [isAiResponseLoading, setIsAiResponseLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const resultsPerPage = 10; // Hardcoded for simplicity
+  const [resultsPerPage, setResultsPerPage] = useState(10);
 
   const resultRefs = useRef(new Map<number, HTMLDivElement>());
 
@@ -35,7 +37,7 @@ const App: React.FC = () => {
     const fetchTitles = async () => {
       try {
         const titlesUrl = `${API_BASE_URL}/get_titles`;
-        const titlesResponse = await fetch(`${PROXY_URL}${encodeURIComponent(titlesUrl)}`);
+        const titlesResponse = await fetch(titlesUrl);
         if (!titlesResponse.ok) throw new Error(`Failed to fetch titles, status: ${titlesResponse.status}`);
         
         const titles: string[] = await titlesResponse.json();
@@ -188,7 +190,7 @@ const App: React.FC = () => {
         const fetchDetailsForPrompt = async (title: string): Promise<Partial<SearchResult>> => {
             try {
                 const dataUrl = `${API_BASE_URL}/get_dataset_data?title=${encodeURIComponent(title)}`;
-                const dataResponse = await fetchWithRetry(`${PROXY_URL}${encodeURIComponent(dataUrl)}`);
+                const dataResponse = await fetchWithRetry(dataUrl);
                 const data = await dataResponse.json();
                 return {
                     description: data.description || '',
@@ -281,7 +283,7 @@ const App: React.FC = () => {
       resultsToFetch.forEach(async (result) => {
         try {
           const dataUrl = `${API_BASE_URL}/get_dataset_data?title=${encodeURIComponent(result.title)}`;
-          const dataResponse = await fetchWithRetry(`${PROXY_URL}${encodeURIComponent(dataUrl)}`);
+          const dataResponse = await fetchWithRetry(dataUrl);
 
           const data = await dataResponse.json();
           
@@ -350,9 +352,21 @@ const App: React.FC = () => {
     handleSearch(tag);
   };
 
+  const handleEnterSite = () => {
+    setHasEnteredSite(true);
+  };
+
+  const handleReturnToLanding = () => {
+    setHasEnteredSite(false);
+  };
+
+  if (!hasEnteredSite) {
+    return <LandingPage onEnter={handleEnterSite} />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50 text-gray-800 font-sans">
-      <Header />
+      <Header onLogoClick={handleReturnToLanding} />
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-6xl mx-auto flex flex-col gap-4">
             <SearchBar 
@@ -362,8 +376,24 @@ const App: React.FC = () => {
                 isLoading={isLoading}
                 onBrowse={handleBrowse}
             />
-            <div className="text-sm text-gray-600">
-              {displayedResults.length} results found
+            <div className="flex justify-between items-center text-sm text-gray-600">
+              <span>{displayedResults.length} results found</span>
+              <div className="flex items-center gap-2">
+                <label htmlFor="results-per-page" className="text-gray-600">Results per page:</label>
+                <select
+                  id="results-per-page"
+                  value={resultsPerPage}
+                  onChange={(e) => {
+                    setResultsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="bg-white border border-gray-300 px-2 py-1"
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
             </div>
             <div className="w-full">
                 <SearchResults 

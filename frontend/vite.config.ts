@@ -6,8 +6,9 @@ export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
     return {
       server: {
-        port: 3000,
+        port: 8302,
         host: '0.0.0.0',
+        allowedHosts: ["biosearchengine.earth","api.biosearchengine.earth"],
       },
       plugins: [react()],
       define: {

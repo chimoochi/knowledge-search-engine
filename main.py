@@ -1,13 +1,28 @@
 from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
 import requests
 from bs4 import BeautifulSoup
 import sqlite3
 from dotenv import load_dotenv
-# https://api.biosearchengine.earth
+
 load_dotenv()
 app = FastAPI()
+
+origins = [
+    "http://localhost:8302",
+    "https://biosearchengine.earth",
+    "https://api.biosearchengine.earth",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 DB_FILE = "dataset.db"
 
